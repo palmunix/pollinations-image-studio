@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pollinations Image Studio</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #1a1d24;
+      --border: #2a2e39;
+      --text: #e8eaed;
+      --muted: #9aa0aa;
+      --accent: #7c5cff;
+      --accent-hover: #8f74ff;
+      --error: #ff6b6b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 { font-size: 24px; font-weight: 600; }
+    h1 span { color: var(--accent); }
+    .subtitle { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+    textarea, select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+    }
+    textarea:focus, select:focus { border-color: var(--accent); }
+    textarea { min-height: 90px; resize: vertical; }
+    .row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
+    .row > div { flex: 1; min-width: 180px; }
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: background 0.15s;
+    }
+    button:hover:not(:disabled) { background: var(--accent-hover); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 12px; }
+    .error { color: var(--error); font-size: 14px; margin-top: 12px; }
+    .result { text-align: center; }
+    .result img {
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .placeholder {
+      color: var(--muted);
+      padding: 60px 20px;
+      font-size: 15px;
+    }
+    .actions { margin-top: 16px; display: flex; gap: 12px; justify-content: center; }
+    .actions a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .actions a:hover { text-decoration: underline; }
+    footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    footer img { height: 28px; opacity: 0.85; }
+    .connect-wrapper { display: flex; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1><span>✦</span> Pollinations Image Studio</h1>
+        <p class="subtitle">Crie imagens com IA usando o seu próprio saldo Pollinations.</p>
+      </div>
+      <div class="connect-wrapper">
+        <polli-connect budget="5" expiry="7" models="image"></polli-connect>
+      </div>
+    </header>
+
+    <div class="panel">
+      <label for="prompt">Descreva a imagem que você quer criar</label>
+      <textarea id="prompt" placeholder="Ex: A lighthouse at dawn, cinematic lighting, digital painting...">A lighthouse at dawn, cinematic lighting, digital painting</textarea>
+      <div class="row">
+        <div>
+          <label for="model">Modelo</label>
+          <select id="model">
+            <option value="black-forest-labs/flux.1-schnell">Flux 1 Schnell (rápido)</option>
+            <option value="tongyi-mai/z-image-turbo">Z-Image Turbo</option>
+            <option value="qwen/qwen-image">Qwen Image</option>
+            <option value="black-forest-labs/flux.2-klein-4b">Flux 2 Klein</option>
+          </select>
+        </div>
+        <div>
+          <label for="ratio">Proporção</label>
+          <select id="ratio">
+            <option value="1024x1024">Quadrado (1:1)</option>
+            <option value="1024x768">Paisagem (4:3)</option>
+            <option value="768x1024">Retrato (3:4)</option>
+            <option value="1280x720">Wide (16:9)</option>
+          </select>
+        </div>
+      </div>
+      <button id="generate">Gerar imagem</button>
+      <p class="hint" id="status">Conecte sua conta Pollinations no botão acima para começar.</p>
+      <p class="error" id="error"></p>
+    </div>
+
+    <div class="panel result">
+      <div id="placeholder" class="placeholder">Sua imagem aparecerá aqui ✨</div>
+      <img id="image" style="display:none" alt="Imagem gerada">
+      <div class="actions" id="actions" style="display:none">
+        <a id="download" download="pollinations-image.png" href="#">⬇ Baixar imagem</a>
+        <a id="open" target="_blank" rel="noopener" href="#">🔗 Abrir em nova aba</a>
+      </div>
+    </div>
+
+    <footer>
+      <a href="https://pollinations.ai/?ref=badge" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/pollinations/pollinations/main/packages/ui/src/brand/badge-made-with.svg" alt="Made with pollinations.ai">
+      </a>
+    </footer>
+  </div>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/@pollinations/ui@0.1.0-alpha.20/dist/connect.js"></script>
+  <script>
+    const connect = document.querySelector('polli-connect');
+    const promptEl = document.getElementById('prompt');
+    const modelEl = document.getElementById('model');
+    const ratioEl = document.getElementById('ratio');
+    const btn = document.getElementById('generate');
+    const statusEl = document.getElementById('status');
+    const errorEl = document.getElementById('error');
+    const placeholder = document.getElementById('placeholder');
+    const image = document.getElementById('image');
+    const actions = document.getElementById('actions');
+    const download = document.getElementById('download');
+    const openLink = document.getElementById('open');
+
+    let apiKey = null;
+
+    connect.addEventListener('change', () => {
+      apiKey = connect.apiKey;
+      if (apiKey) {
+        statusEl.textContent = 'Conectado! Descreva sua imagem e clique em gerar.';
+        statusEl.style.color = '#7c5cff';
+        btn.disabled = false;
+        errorEl.textContent = '';
+      } else {
+        statusEl.textContent = 'Conecte sua conta Pollinations no botão acima para começar.';
+        statusEl.style.color = '';
+        btn.disabled = true;
+      }
+    });
+
+    btn.disabled = true;
+
+    btn.addEventListener('click', async () => {
+      const prompt = promptEl.value.trim();
+      if (!prompt) {
+        errorEl.textContent = 'Digite uma descrição para a imagem.';
+        return;
+      }
+      if (!apiKey) {
+        errorEl.textContent = 'Conecte sua conta Pollinations primeiro.';
+        return;
+      }
+
+      errorEl.textContent = '';
+      btn.disabled = true;
+      statusEl.textContent = 'Gerando imagem...';
+      placeholder.style.display = 'none';
+      image.style.display = 'none';
+      actions.style.display = 'none';
+
+      const [w, h] = ratioEl.value.split('x');
+      const params = new URLSearchParams({
+        model: modelEl.value,
+        width: w,
+        height: h,
+        key: apiKey,
+        seed: String(Math.floor(Math.random() * 1000000)),
+      });
+      const url = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?${params}`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
+        }
+        const blob = await res.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        image.src = objectUrl;
+        image.onload = () => URL.revokeObjectURL(objectUrl);
+        image.style.display = 'block';
+        download.href = objectUrl;
+        openLink.href = url;
+        actions.style.display = 'flex';
+        statusEl.textContent = 'Imagem gerada com sucesso!';
+        statusEl.style.color = '#4ade80';
+      } catch (err) {
+        errorEl.textContent = 'Erro ao gerar imagem: ' + err.message;
+        placeholder.style.display = 'block';
+        statusEl.textContent = '';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
